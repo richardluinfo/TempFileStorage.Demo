@@ -30,9 +30,9 @@ string fileName = await streamService.SaveAsTempFile(bytes, default);
 
 Log.Information("Temp File created: {FileName}", fileName);
 
-await Task.Delay(60_000);
+await Task.Delay(10_000);
         
-await using Stream stream = await streamService.GetTempFileStream(fileName, default);
+await using Stream stream = streamService.GetTempFileAsStream(fileName, default);
 	   
 StreamReader reader = new(stream);
 	   

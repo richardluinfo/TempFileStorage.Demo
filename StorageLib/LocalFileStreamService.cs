@@ -5,7 +5,9 @@ namespace StorageLib;
 public interface ILocalFileStreamService
 {
     Task<string> SaveAsTempFile(byte[] bytes, CancellationToken cancellationToken);
-    Task<Stream> GetTempFileStream(string fileName, CancellationToken cancellationToken);
+    Task<byte[]?> GetTempFileAsBytes(string fileName, CancellationToken cancellationToken);
+    Task<string?> GetTempFileAsString(string fileName, CancellationToken cancellationToken);
+    Stream GetTempFileAsStream(string fileName, CancellationToken cancellationToken);
     Task<Stream> NoTempFileStream(byte[] bytes, CancellationToken cancellationToken);
 }
 
@@ -40,12 +42,24 @@ public class LocalFileStreamService : ILocalFileStreamService
         }
     }
 
-    public async Task<Stream> GetTempFileStream(string fileName, CancellationToken cancellationToken)
+    public async Task<byte[]?> GetTempFileAsBytes(string fileName, CancellationToken cancellationToken)
     {
         try
         {
-            return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
+            if (!File.Exists(fileName))
+            {
+                _logger.LogError("File {FileName} doesn't not exist", fileName);
+                return default;
+            }
+
+            await using FileStream stream = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
                 FileOptions.DeleteOnClose);
+            
+            byte[] bytes = new byte[stream.Length];
+
+            _ = await stream.ReadAsync(bytes.AsMemory(0, (int)stream.Length), cancellationToken);
+
+            return bytes;
         }
         catch (Exception ex)
         {
@@ -60,9 +74,65 @@ public class LocalFileStreamService : ILocalFileStreamService
         }
     }
 
+    public async Task<string?> GetTempFileAsString(string fileName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (!File.Exists(fileName))
+            {
+                _logger.LogError("File {FileName} doesn't not exist", fileName);
+                return default;
+            }
+            
+            await using FileStream stream = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
+                FileOptions.DeleteOnClose);
+
+            if (stream.CanSeek)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+
+            using StreamReader reader = new(stream);
+
+            return await reader.ReadToEndAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read temp file. FileName: {FileName}", fileName);
+            
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+            
+            throw;
+        }
+    }
+
+    public Stream GetTempFileAsStream(string fileName, CancellationToken cancellationToken)
+    {
+        if (!File.Exists(fileName))
+        {
+            _logger.LogError("File {FileName} doesn't not exist", fileName);
+            throw new FileNotFoundException();
+        }
+            
+        FileStream stream = new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
+            FileOptions.DeleteOnClose);
+
+        if (stream.CanSeek)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+
+        return stream;
+    }
+
     public async Task<Stream> NoTempFileStream(byte[] bytes, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        return new MemoryStream(bytes);
+        var stream = new MemoryStream(bytes);
+        stream.Seek(0, SeekOrigin.Begin);
+        return stream;
     }
 }

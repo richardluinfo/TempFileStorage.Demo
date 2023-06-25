@@ -9,7 +9,8 @@ Job=MediumRun  Toolchain=InProcessNoEmitToolchain  IterationCount=15
 LaunchCount=2  WarmupCount=10  
 
 ```
-|                     Method |       Mean |    Error |   StdDev |       Gen0 |      Gen1 |      Gen2 | Allocated |
-|--------------------------- |-----------:|---------:|---------:|-----------:|----------:|----------:|----------:|
-|  BenchmarkNoTempFileStream |   986.7 ms |  8.60 ms | 12.87 ms | 15000.0000 | 9000.0000 | 3000.0000 | 187.66 MB |
-| BenchmarkGetTempFileStream | 1,101.5 ms | 11.60 ms | 17.37 ms | 15000.0000 | 9000.0000 | 3000.0000 |  189.2 MB |
+|              Method |       Mean |    Error |   StdDev |       Gen0 |      Gen1 |      Gen2 | Allocated |
+|-------------------- |-----------:|---------:|---------:|-----------:|----------:|----------:|----------:|
+|    NoTempFileStream |   520.5 ms |  3.96 ms |  5.93 ms |  1000.0000 | 1000.0000 | 1000.0000 |  78.11 MB |
+|  GetTempFileAsBytes |   561.8 ms |  6.64 ms |  9.31 ms |  1000.0000 | 1000.0000 | 1000.0000 |  78.11 MB |
+| GetTempFileAsString | 1,134.4 ms | 27.98 ms | 41.88 ms | 15000.0000 | 9000.0000 | 3000.0000 | 189.21 MB |

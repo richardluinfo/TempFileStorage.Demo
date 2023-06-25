@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>Benchmarking.BenchmarkingLocalFileStreamService-20230625-205314</title>
+<title>Benchmarking.BenchmarkingLocalFileStreamService-20230625-212841</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -23,10 +23,11 @@ LaunchCount=2  WarmupCount=10
 </code></pre>
 
 <table>
-<thead><tr><th>              Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
+<thead><tr><th>       Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>BenchmarkNoTempFileStream</td><td>986.7 ms</td><td>8.60 ms</td><td>12.87 ms</td><td>15000.0000</td><td>9000.0000</td><td>3000.0000</td><td>187.66 MB</td>
-</tr><tr><td>BenchmarkGetTempFileStream</td><td>1,101.5 ms</td><td>11.60 ms</td><td>17.37 ms</td><td>15000.0000</td><td>9000.0000</td><td>3000.0000</td><td>189.2 MB</td>
+</thead><tbody><tr><td>NoTempFileStream</td><td>520.5 ms</td><td>3.96 ms</td><td>5.93 ms</td><td>1000.0000</td><td>1000.0000</td><td>1000.0000</td><td>78.11 MB</td>
+</tr><tr><td>GetTempFileAsBytes</td><td>561.8 ms</td><td>6.64 ms</td><td>9.31 ms</td><td>1000.0000</td><td>1000.0000</td><td>1000.0000</td><td>78.11 MB</td>
+</tr><tr><td>GetTempFileAsString</td><td>1,134.4 ms</td><td>27.98 ms</td><td>41.88 ms</td><td>15000.0000</td><td>9000.0000</td><td>3000.0000</td><td>189.21 MB</td>
 </tr></tbody></table>
 </body>
 </html>

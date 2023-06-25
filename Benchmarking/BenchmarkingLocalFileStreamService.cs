@@ -11,6 +11,7 @@ namespace Benchmarking;
 
 [MemoryDiagnoser]
 [Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
+[ReturnValueValidator(failOnError: true)]
 [Config(typeof(AntiVirusFriendlyConfig))]
 public class BenchmarkingLocalFileStreamService
 {
@@ -35,7 +36,7 @@ public class BenchmarkingLocalFileStreamService
     }
     
     [Benchmark]
-    public async Task BenchmarkGetTempFileStream()
+    public async Task<bool> GetTempFileAsBytes()
     {
         var streamService = _serviceProvider.GetRequiredService<ILocalFileStreamService>();
         byte[] bytes = await GetRandomBytes(NumberOfBytes);
@@ -43,16 +44,44 @@ public class BenchmarkingLocalFileStreamService
         string fileName = await streamService.SaveAsTempFile(bytes, default);
 
         await Task.Delay(Delay);
-        
-        await using Stream stream = await streamService.GetTempFileStream(fileName, default);
-	   
-        StreamReader reader = new(stream);
-	   
-        _ = await reader.ReadToEndAsync();
+
+        byte[]? result = await streamService.GetTempFileAsBytes(fileName, default);
+
+        return result?.Length > 1_000;
     }
     
     [Benchmark]
-    public async Task BenchmarkNoTempFileStream()
+    public async Task<bool> GetTempFileAsString()
+    {
+        var streamService = _serviceProvider.GetRequiredService<ILocalFileStreamService>();
+        byte[] bytes = await GetRandomBytes(NumberOfBytes);
+
+        string fileName = await streamService.SaveAsTempFile(bytes, default);
+
+        await Task.Delay(Delay);
+
+        string? result = await streamService.GetTempFileAsString(fileName, default);
+
+        return result?.Length > 1_000;
+    }
+    
+    [Benchmark]
+    public async Task<bool> GetTempFileAsStream()
+    {
+        var streamService = _serviceProvider.GetRequiredService<ILocalFileStreamService>();
+        byte[] bytes = await GetRandomBytes(NumberOfBytes);
+
+        string fileName = await streamService.SaveAsTempFile(bytes, default);
+
+        await Task.Delay(Delay);
+
+        await using Stream result = streamService.GetTempFileAsStream(fileName, default);
+
+        return result.Length > 1_000;
+    }
+    
+    [Benchmark]
+    public async Task<bool> NoTempFileStream()
     {
         var streamService = _serviceProvider.GetRequiredService<ILocalFileStreamService>();
         byte[] bytes = await GetRandomBytes(NumberOfBytes);
@@ -60,16 +89,12 @@ public class BenchmarkingLocalFileStreamService
         await Task.Delay(Delay);
         
         await using Stream stream = await streamService.NoTempFileStream(bytes, default);
-        stream.Seek(0, SeekOrigin.Begin);
-        StreamReader reader = new(stream);
-	
-        _ = await reader.ReadToEndAsync();
-    }
-    
-    [GlobalCleanup]
-    public void GlobalCleanup()
-    {
-        //Write your cleanup logic here
+        
+        byte[] result = new byte[stream.Length];
+
+        _ = await stream.ReadAsync(result.AsMemory(0, (int)stream.Length), default);
+
+        return result.Length > 1_000;
     }
 
     private static Task<byte[]> GetRandomBytes(long size)
